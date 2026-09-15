@@ -1,0 +1,1101 @@
+{
+  "siteLabel": "freshmeadows",
+  "totalClientsAnalyzed": 2010,
+  "summary": {
+    "emailDuplicateGroups": 5,
+    "emailDuplicateClientCount": 10,
+    "phoneDuplicateGroups": 38,
+    "phoneDuplicateClientCount": 82,
+    "distinctClientsInvolvedInAnyDuplicate": 86
+  },
+  "emailDuplicates": [
+    {
+      "email": "jkroman1025@gmail.com",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000967",
+          "FirstName": "Quentin",
+          "LastName": "Charley",
+          "Email": "jkroman1025@gmail.com",
+          "MobilePhone": null,
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-20T00:00:00"
+        },
+        {
+          "Id": "100000966",
+          "FirstName": "Jessica",
+          "LastName": "Roman",
+          "Email": "jkroman1025@gmail.com",
+          "MobilePhone": "3474790398",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-20T00:00:00"
+        }
+      ]
+    },
+    {
+      "email": "nadia.kalantarova@gmail.com",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000343",
+          "FirstName": "Nadia",
+          "LastName": "Kalantarova",
+          "Email": "nadia.kalantarova@gmail.com",
+          "MobilePhone": "9177449790",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-05T00:00:00"
+        },
+        {
+          "Id": "100001774",
+          "FirstName": "Natalie",
+          "LastName": "Yadgarov",
+          "Email": "nadia.kalantarova@gmail.com",
+          "MobilePhone": "9177449790",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-08T00:00:00"
+        }
+      ]
+    },
+    {
+      "email": "ilana413@yahoo.com",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000602",
+          "FirstName": "Ilana",
+          "LastName": "Kandchorov",
+          "Email": "ilana413@yahoo.com",
+          "MobilePhone": "3475367138",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-12T00:00:00"
+        },
+        {
+          "Id": "100000603",
+          "FirstName": "ILANA",
+          "LastName": "RUBINOV",
+          "Email": "ILANA413@YAHOO.COM",
+          "MobilePhone": "3475367138",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-12T00:00:00"
+        }
+      ]
+    },
+    {
+      "email": "giannijfrancom@gmail.com",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001886",
+          "FirstName": "Melanie",
+          "LastName": "Valdez",
+          "Email": "giannijfrancom@gmail.com",
+          "MobilePhone": "4073084404",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-10T00:00:00"
+        },
+        {
+          "Id": "100001887",
+          "FirstName": "Miabella",
+          "LastName": "Valdez",
+          "Email": "giannijfrancom@gmail.com",
+          "MobilePhone": "4076390109",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-10T00:00:00"
+        }
+      ]
+    },
+    {
+      "email": "leilarivka@gmail.com",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000193",
+          "FirstName": "Carmela",
+          "LastName": "Yakubov",
+          "Email": "leilarivka@gmail.com",
+          "MobilePhone": "3476813177",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100000848",
+          "FirstName": "Rivka",
+          "LastName": "Yakubov",
+          "Email": "leilarivka@gmail.com",
+          "MobilePhone": "3476813177",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-18T00:00:00"
+        }
+      ]
+    }
+  ],
+  "phoneDuplicates": [
+    {
+      "phone": "9179232899",
+      "clientCount": 4,
+      "clients": [
+        {
+          "Id": "100000225",
+          "FirstName": "Sam",
+          "LastName": "Barnes",
+          "Email": "samburns645@gmail.com",
+          "MobilePhone": "9179232899",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100001101",
+          "FirstName": "Sam",
+          "LastName": "Barnes",
+          "Email": "jennaab56@gmail.com",
+          "MobilePhone": "9179232899",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-24T00:00:00"
+        },
+        {
+          "Id": "100001197",
+          "FirstName": "Sam",
+          "LastName": "Bruno",
+          "Email": "andreacarlena@gmail.com",
+          "MobilePhone": "9179232899",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-26T00:00:00"
+        },
+        {
+          "Id": "100001091",
+          "FirstName": "samantha",
+          "LastName": "burns",
+          "Email": "sba4315@gmail.com",
+          "MobilePhone": "9179232899",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-24T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "7187571865",
+      "clientCount": 4,
+      "clients": [
+        {
+          "Id": "100000540",
+          "FirstName": "Lindsey",
+          "LastName": "O’Neill",
+          "Email": "ljoneill8@icloud.com",
+          "MobilePhone": "7187571865",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-11T00:00:00"
+        },
+        {
+          "Id": "100001447",
+          "FirstName": "Lindsey",
+          "LastName": "O’Neill",
+          "Email": "Maoneill8@icloud.com",
+          "MobilePhone": "7187571865",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-31T00:00:00"
+        },
+        {
+          "Id": "100001389",
+          "FirstName": "lindsey",
+          "LastName": "oneill",
+          "Email": "lindseyoneill856@gmail.com",
+          "MobilePhone": "7187571865",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-29T00:00:00"
+        },
+        {
+          "Id": "100000824",
+          "FirstName": "Lindsey",
+          "LastName": "O'Neill",
+          "Email": "lindsey.oneill@uri.edu",
+          "MobilePhone": "7187571865",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-17T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3475535556",
+      "clientCount": 3,
+      "clients": [
+        {
+          "Id": "100000058",
+          "FirstName": "Isabella",
+          "LastName": "Guerrero",
+          "Email": "Bellag402@gmail.com",
+          "MobilePhone": "3475535556",
+          "Status": "Non-Member",
+          "CreationDate": "2026-07-28T00:00:00"
+        },
+        {
+          "Id": "100000268",
+          "FirstName": "Isabella",
+          "LastName": "Guerrero",
+          "Email": "Isabellag9026@gmail.com",
+          "MobilePhone": "3475535556",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100000640",
+          "FirstName": "Isabella",
+          "LastName": "Guerrero",
+          "Email": "Isabella.guerrero@stonybrook.edu",
+          "MobilePhone": "3475535556",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-12T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3475109624",
+      "clientCount": 3,
+      "clients": [
+        {
+          "Id": "100001770",
+          "FirstName": "Alfredito",
+          "LastName": "Loaiza",
+          "Email": "alfreditoo04272004@gmail.com",
+          "MobilePhone": "3475109624",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-07T00:00:00"
+        },
+        {
+          "Id": "100001077",
+          "FirstName": "Diana",
+          "LastName": "Loaiza",
+          "Email": "dianacov0422@gmail.com",
+          "MobilePhone": "3475109624",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-24T00:00:00"
+        },
+        {
+          "Id": "100001965",
+          "FirstName": "Diane",
+          "LastName": "Loaiza",
+          "Email": "Dianegc0422@gmail.com",
+          "MobilePhone": "3475109624",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-13T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "6313103886",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000315",
+          "FirstName": "Christiana",
+          "LastName": "A.D",
+          "Email": "chrissyscreativestudio@gmail.com",
+          "MobilePhone": "6313103886",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-05T00:00:00"
+        },
+        {
+          "Id": "100000531",
+          "FirstName": "Christiana",
+          "LastName": "Diaoune",
+          "Email": "christianadiaoune@gmail.com",
+          "MobilePhone": "6313103886",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-11T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3477889407",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001603",
+          "FirstName": "Denise",
+          "LastName": "Batista",
+          "Email": "batista.d.iis@gmail.com",
+          "MobilePhone": "3477889407",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-02T00:00:00"
+        },
+        {
+          "Id": "100001325",
+          "FirstName": "Denise",
+          "LastName": "Batista",
+          "Email": "denise.batista218@gmail.com",
+          "MobilePhone": "3477889407",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-28T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "6312198342",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001156",
+          "FirstName": "Kayla",
+          "LastName": "Berrios",
+          "Email": null,
+          "MobilePhone": "6312198342",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-25T00:00:00"
+        },
+        {
+          "Id": "100001459",
+          "FirstName": "Keila",
+          "LastName": "Berrios",
+          "Email": "keilapettus@icloud.com",
+          "MobilePhone": "6312198342",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-31T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "6464650960",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001393",
+          "FirstName": "Celeste",
+          "LastName": "Briceno",
+          "Email": "ruizabby99@gmail.com",
+          "MobilePhone": "6464650960",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-29T00:00:00"
+        },
+        {
+          "Id": "100000088",
+          "FirstName": "Pavith",
+          "LastName": "Thanickal",
+          "Email": "pthanickal97@gmail.com",
+          "MobilePhone": "6464650960",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-01T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "9296869920",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001722",
+          "FirstName": "Ani",
+          "LastName": "Ca",
+          "Email": "anahiscanela7777@gmail.com",
+          "MobilePhone": "9296869920",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-05T00:00:00"
+        },
+        {
+          "Id": "100001326",
+          "FirstName": "Ana",
+          "LastName": "Canela",
+          "Email": "anahiscanela09@icloud.com",
+          "MobilePhone": "9296869920",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-28T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "6468303865",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000876",
+          "FirstName": "Harmony",
+          "LastName": "Chen",
+          "Email": "nelsonchen06@icloud.com",
+          "MobilePhone": "6468303865",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-18T00:00:00"
+        },
+        {
+          "Id": "100000188",
+          "FirstName": "Harmony",
+          "LastName": "Lin",
+          "Email": "Harmonylin821@gmail.com",
+          "MobilePhone": "6468303865",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "9179431023",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000350",
+          "FirstName": "Alfredo",
+          "LastName": "Covarrubias",
+          "Email": "alfredocov0427@gmail.com",
+          "MobilePhone": "9179431023",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-05T00:00:00"
+        },
+        {
+          "Id": "100001380",
+          "FirstName": "Fredo",
+          "LastName": "Covarrubias",
+          "Email": "Fredoo0427@gmail.com",
+          "MobilePhone": "9179431023",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-29T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3477247218",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001073",
+          "FirstName": "Diana",
+          "LastName": "Covarrubias",
+          "Email": "dianalupe0422@gmail.com",
+          "MobilePhone": "3477247218",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-24T00:00:00"
+        },
+        {
+          "Id": "100001075",
+          "FirstName": "Diana",
+          "LastName": "Loaiza",
+          "Email": "dloaiza1013@gmail.com",
+          "MobilePhone": "3477247218",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-24T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "9293227041",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000401",
+          "FirstName": "Michelle",
+          "LastName": "F.",
+          "Email": "michelle.funez04@gmail.com",
+          "MobilePhone": "9293227041",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-06T00:00:00"
+        },
+        {
+          "Id": "100000595",
+          "FirstName": "Michelle",
+          "LastName": "F.",
+          "Email": "michellelena1215@gmail.com",
+          "MobilePhone": "9293227041",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-11T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "6469323173",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000259",
+          "FirstName": "Cassandra",
+          "LastName": "Fallon",
+          "Email": "cbfallon12@gmail.com",
+          "MobilePhone": "6469323173",
+          "Status": "Active",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100001002",
+          "FirstName": "Cassie",
+          "LastName": "Fallon",
+          "Email": "cbfallon@email.sc.edu",
+          "MobilePhone": "6469323173",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-21T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3476679517",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001759",
+          "FirstName": "Denisse",
+          "LastName": "Flores",
+          "Email": "kemfloresx15@gmail.com",
+          "MobilePhone": "3476679517",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-07T00:00:00"
+        },
+        {
+          "Id": "100000853",
+          "FirstName": "kemberly",
+          "LastName": "palomeque",
+          "Email": "KEMBERLY.PALOMEQUE64@student.qcc.cuny.edu",
+          "MobilePhone": "3476679517",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-18T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3478435114",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000325",
+          "FirstName": "Amy",
+          "LastName": "Freid",
+          "Email": "amyfreid623@yahoo.com",
+          "MobilePhone": "3478435114",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-05T00:00:00"
+        },
+        {
+          "Id": "100000789",
+          "FirstName": "Amy",
+          "LastName": "Freid",
+          "Email": "freidamy@gmail.com",
+          "MobilePhone": "3478435114",
+          "Status": "Active",
+          "CreationDate": "2026-08-17T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "5167820086",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001495",
+          "FirstName": "sandra",
+          "LastName": "goberdan",
+          "Email": "otosthecity@gmail.com",
+          "MobilePhone": "5167820086",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-31T00:00:00"
+        },
+        {
+          "Id": "100001854",
+          "FirstName": "Sandra",
+          "LastName": "Namraj",
+          "Email": "Otofthecity@gmail.com",
+          "MobilePhone": "5167820086",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-10T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3472289591",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000209",
+          "FirstName": "Jasmine",
+          "LastName": "Ince",
+          "Email": "fy99npq9th@privaterelay.appleid.com",
+          "MobilePhone": "3472289591",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100000801",
+          "FirstName": "Jasmine",
+          "LastName": "Ince",
+          "Email": "Jasmineince@gmail.com",
+          "MobilePhone": "3472289591",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-17T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3478463979",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000238",
+          "FirstName": "Miranda",
+          "LastName": "Ingram",
+          "Email": "mirandaingram55@gmail.com",
+          "MobilePhone": "3478463979",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100000568",
+          "FirstName": "Miranda",
+          "LastName": "Ingram",
+          "Email": "Ingrammiranda20@gmail.com",
+          "MobilePhone": "3478463979",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-11T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "9177449790",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000343",
+          "FirstName": "Nadia",
+          "LastName": "Kalantarova",
+          "Email": "nadia.kalantarova@gmail.com",
+          "MobilePhone": "9177449790",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-05T00:00:00"
+        },
+        {
+          "Id": "100001774",
+          "FirstName": "Natalie",
+          "LastName": "Yadgarov",
+          "Email": "nadia.kalantarova@gmail.com",
+          "MobilePhone": "9177449790",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-08T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3475367138",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000602",
+          "FirstName": "Ilana",
+          "LastName": "Kandchorov",
+          "Email": "ilana413@yahoo.com",
+          "MobilePhone": "3475367138",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-12T00:00:00"
+        },
+        {
+          "Id": "100000603",
+          "FirstName": "ILANA",
+          "LastName": "RUBINOV",
+          "Email": "ILANA413@YAHOO.COM",
+          "MobilePhone": "3475367138",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-12T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "5165890351",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001635",
+          "FirstName": "Nathalia",
+          "LastName": "Ladino",
+          "Email": "NLadino@schools.nyc.gov",
+          "MobilePhone": "5165890351",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-02T00:00:00"
+        },
+        {
+          "Id": "100000908",
+          "FirstName": "Nathalia",
+          "LastName": "Ladino",
+          "Email": "Nathalialadino16@gmail.com",
+          "MobilePhone": "5165890351",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-19T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3476614262",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000832",
+          "FirstName": "Jada",
+          "LastName": "Lee",
+          "Email": "gualbertorosarioorta@gmail.com",
+          "MobilePhone": "3476614262",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-17T00:00:00"
+        },
+        {
+          "Id": "100000665",
+          "FirstName": "jada",
+          "LastName": "orta",
+          "Email": "jadaleeorta123@gmail.com",
+          "MobilePhone": "3476614262",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-13T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "7184506541",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001096",
+          "FirstName": "Jin",
+          "LastName": "Lee",
+          "Email": "ilovemusic2002626@gmail.com",
+          "MobilePhone": "7184506541",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-24T00:00:00"
+        },
+        {
+          "Id": "100000314",
+          "FirstName": "Yujin",
+          "LastName": "Lee",
+          "Email": "03925yujinlee625@gmail.com",
+          "MobilePhone": "7184506541",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-05T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "6099031307",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001117",
+          "FirstName": "Maria",
+          "LastName": "Londono",
+          "Email": "Mlondono1@aol.com",
+          "MobilePhone": "6099031307",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-25T00:00:00"
+        },
+        {
+          "Id": "100001116",
+          "FirstName": "Tatiana",
+          "LastName": "Roa",
+          "Email": "tatiana.roaaa@gmail.com",
+          "MobilePhone": "6099031307",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-25T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "9293530471",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001548",
+          "FirstName": "Brittany",
+          "LastName": "Lyons",
+          "Email": "Cashmeyajah@gmail.com",
+          "MobilePhone": "9293530471",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-01T00:00:00"
+        },
+        {
+          "Id": "100001467",
+          "FirstName": "Jahtiana",
+          "LastName": "Shuler",
+          "Email": "jahtiana2001@gmail.com",
+          "MobilePhone": "9293530471",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-31T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "7186629009",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001571",
+          "FirstName": "null",
+          "LastName": "null",
+          "Email": "kathyedu2090@gmail.com",
+          "MobilePhone": "7186629009",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-01T00:00:00"
+        },
+        {
+          "Id": "100001695",
+          "FirstName": "Katherine",
+          "LastName": "Villarreal",
+          "Email": "Kvillarreal@schools.nyc.gov",
+          "MobilePhone": "7186629009",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-04T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "7186892196",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000575",
+          "FirstName": "Andrea",
+          "LastName": "Olaya",
+          "Email": "dreao@icloud.com",
+          "MobilePhone": "7186892196",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-11T00:00:00"
+        },
+        {
+          "Id": "100001221",
+          "FirstName": "Andrea",
+          "LastName": "Olaya",
+          "Email": "dreaaxx33@gmail.com",
+          "MobilePhone": "7186892196",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-27T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3479816903",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000257",
+          "FirstName": "Nadira",
+          "LastName": "Rambarran",
+          "Email": "Nrambarran.chem3@gmail.com",
+          "MobilePhone": "3479816903",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100000661",
+          "FirstName": "Nadira",
+          "LastName": "Rambarran",
+          "Email": "Nramba1@pride.hofstra.edu",
+          "MobilePhone": "3479816903",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-13T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "6463721726",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000286",
+          "FirstName": "Susana",
+          "LastName": "Rendina",
+          "Email": "susana.rendina@gmail.com",
+          "MobilePhone": "6463721726",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-04T00:00:00"
+        },
+        {
+          "Id": "100000287",
+          "FirstName": "Susana",
+          "LastName": "Rendina",
+          "Email": "Srendina@tegna.com",
+          "MobilePhone": "6463721726",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-04T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "9179818482",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001808",
+          "FirstName": "Shy",
+          "LastName": "Shabat",
+          "Email": "shabatshylee@icloud.com",
+          "MobilePhone": "9179818482",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-08T00:00:00"
+        },
+        {
+          "Id": "100001781",
+          "FirstName": "Shylee",
+          "LastName": "Shabat",
+          "Email": "shyleeshabat@icloud.com",
+          "MobilePhone": "9179818482",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-08T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "7189260815",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000510",
+          "FirstName": "Natasha",
+          "LastName": "Teape",
+          "Email": "qpz96gqh2v@privaterelay.appleid.com",
+          "MobilePhone": "7189260815",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-10T00:00:00"
+        },
+        {
+          "Id": "100000613",
+          "FirstName": "Natasha",
+          "LastName": "Teape",
+          "Email": "natasha.teape@gmail.com",
+          "MobilePhone": "7189260815",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-12T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "9174880686",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000046",
+          "FirstName": "Belle",
+          "LastName": "Torres",
+          "Email": "Belletorres0706@gmail.com",
+          "MobilePhone": "9174880686",
+          "Status": "Active",
+          "CreationDate": "2026-07-27T00:00:00"
+        },
+        {
+          "Id": "100001988",
+          "FirstName": "Rafael",
+          "LastName": "Torres",
+          "Email": "rtorres0726@gmail.com",
+          "MobilePhone": "9174880686",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-14T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "7707435290",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001567",
+          "FirstName": "Areal",
+          "LastName": "Willis",
+          "Email": "arealwillis8@gmail.com",
+          "MobilePhone": "7707435290",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-01T00:00:00"
+        },
+        {
+          "Id": "100001573",
+          "FirstName": "Ari",
+          "LastName": "Willis",
+          "Email": "areal.willis26@my.stjohns.edu",
+          "MobilePhone": "7707435290",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-01T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "7186979026",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000221",
+          "FirstName": "Anna",
+          "LastName": "Y",
+          "Email": "annayou.11112@gmail.com",
+          "MobilePhone": "7186979026",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100000970",
+          "FirstName": "Anna",
+          "LastName": "You",
+          "Email": "annamikaelson16@gmail.com",
+          "MobilePhone": "7186979026",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-20T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3476813177",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100000193",
+          "FirstName": "Carmela",
+          "LastName": "Yakubov",
+          "Email": "leilarivka@gmail.com",
+          "MobilePhone": "3476813177",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-03T00:00:00"
+        },
+        {
+          "Id": "100000848",
+          "FirstName": "Rivka",
+          "LastName": "Yakubov",
+          "Email": "leilarivka@gmail.com",
+          "MobilePhone": "3476813177",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-18T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3472336033",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001071",
+          "FirstName": "Rebecca",
+          "LastName": "Yegudayeva",
+          "Email": "Yegudayevarebecca22@gmail.com",
+          "MobilePhone": "3472336033",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-24T00:00:00"
+        },
+        {
+          "Id": "100001420",
+          "FirstName": "Rebecca",
+          "LastName": "Yegudayeva",
+          "Email": "f62r59pzvr@privaterelay.appleid.com",
+          "MobilePhone": "3472336033",
+          "Status": "Non-Member",
+          "CreationDate": "2026-08-30T00:00:00"
+        }
+      ]
+    },
+    {
+      "phone": "3472179982",
+      "clientCount": 2,
+      "clients": [
+        {
+          "Id": "100001566",
+          "FirstName": "Tasnim",
+          "LastName": "Zaman",
+          "Email": "tasnimz1223@gmail.com",
+          "MobilePhone": "3472179982",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-01T00:00:00"
+        },
+        {
+          "Id": "100001750",
+          "FirstName": "Tasnim",
+          "LastName": "Zaman",
+          "Email": "zamanranu74@gmail.com",
+          "MobilePhone": "3472179982",
+          "Status": "Non-Member",
+          "CreationDate": "2026-09-06T00:00:00"
+        }
+      ]
+    }
+  ]
+}

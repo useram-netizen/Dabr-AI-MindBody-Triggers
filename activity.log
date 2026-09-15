@@ -1,0 +1,17 @@
+[2026-09-15T19:42:24.054Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012799 GHL_CONTACT=NOT_FOUND ACTION="Fallback GHL contact creation failed" STATUS=error
+[2026-09-15T19:42:24.056Z] TRIGGER=clientMembershipAssignment.created MINDBODY_CLIENT=100012799 GHL_CONTACT=NOT_FOUND ACTION="Could not resolve GHL contact for membership creation" STATUS=error
+[2026-09-15T19:43:35.883Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012491 GHL_CONTACT=xKpyxinTdx6p6TUJlnwc ACTION="Created missing contact via fallback" STATUS=success
+[2026-09-15T19:43:37.132Z] TRIGGER=clientMembershipAssignment.created MINDBODY_CLIENT=100012491 GHL_CONTACT=xKpyxinTdx6p6TUJlnwc ACTION="Created membership record and linked to contact" STATUS=success
+[2026-09-15T19:44:22.940Z] TRIGGER=clientMembershipAssignment.created MINDBODY_CLIENT=100012491 GHL_CONTACT=xKpyxinTdx6p6TUJlnwc ACTION="Created membership record and linked to contact" STATUS=success
+[2026-09-15T19:53:52.646Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Fallback contact creation threw an error" STATUS=error
+[2026-09-15T19:53:52.652Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Could not resolve GHL contact for no-show update" STATUS=error
+[2026-09-15T19:54:41.541Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Fallback contact creation threw an error" STATUS=error
+[2026-09-15T19:54:41.542Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Could not resolve GHL contact for no-show update" STATUS=error
+[2026-09-15T19:55:50.170Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Fallback contact creation threw an error" STATUS=error
+[2026-09-15T19:55:50.171Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Could not resolve GHL contact for no-show update" STATUS=error
+[2026-09-15T19:56:11.378Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Fallback contact creation threw an error" STATUS=error
+[2026-09-15T19:56:11.379Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Could not resolve GHL contact for no-show update" STATUS=error
+[2026-09-15T19:57:15.038Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Fallback GHL contact creation failed" STATUS=error
+[2026-09-15T19:57:15.039Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Could not resolve GHL contact for no-show update" STATUS=error
+[2026-09-15T19:59:04.628Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012849 GHL_CONTACT=GglSdNhnJUhJTNxiVT5a ACTION="Created missing contact via fallback" STATUS=success
+[2026-09-15T19:59:05.499Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012849 GHL_CONTACT=GglSdNhnJUhJTNxiVT5a ACTION="Applied mb-no-show tag" STATUS=success

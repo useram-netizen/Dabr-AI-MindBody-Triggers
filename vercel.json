@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/no-show", "schedule": "0 13 * * *" },
+    { "path": "/api/cron/inactive-member", "schedule": "0 14 * * *" }
+  ]
+}
