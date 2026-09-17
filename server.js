@@ -203,6 +203,23 @@ function logActivity({ trigger, mindbodyClientId, ghlContactId, action, status }
   }
 }
 
+/**
+ * Wraps a single NEW logging statement (the verbose entry/decision/outcome
+ * console logging added below, on top of the existing console.log/
+ * console.error/logActivity calls) in its own try/catch, so a bug in a log
+ * line itself can never break the real business logic around it — worst
+ * case it prints one "Logging error (non-fatal)" line and everything else
+ * proceeds exactly as before. Existing logging calls are untouched; this is
+ * only used for the new logging this pass adds.
+ */
+function safeLog(logFn) {
+  try {
+    logFn();
+  } catch (error) {
+    console.error('Logging error (non-fatal):', error);
+  }
+}
+
 // We need the raw, exact bytes of the request body to verify the HMAC
 // signature (any re-serialization of the JSON, even reformatting whitespace,
 // would produce a different signature). express.json()'s `verify` option
@@ -315,6 +332,12 @@ function buildContactPayload(eventData) {
  * Creates a contact in GoHighLevel from a Mindbody "client.created" event.
  */
 async function createGHLContact(eventData) {
+  safeLog(() =>
+    console.log(
+      `createGHLContact: ENTRY trigger=client.created mindbodyClientId=${eventData.clientId} email=${eventData.email} firstName=${eventData.firstName} lastName=${eventData.lastName}`
+    )
+  );
+
   // Create is the only place locationId + source apply.
   const contactPayload = {
     ...buildContactPayload(eventData),
@@ -323,11 +346,19 @@ async function createGHLContact(eventData) {
   };
 
   try {
+    safeLog(() =>
+      console.log(
+        `createGHLContact: calling POST ${GHL_API_BASE_URL}/contacts/ — locationId=${contactPayload.locationId} tags=${JSON.stringify(contactPayload.tags)} customFieldIds=${JSON.stringify(contactPayload.customFields.map((f) => f.id))}`
+      )
+    );
+
     const response = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/`, {
       method: 'POST',
       headers: GHL_HEADERS,
       body: JSON.stringify(contactPayload),
     });
+
+    safeLog(() => console.log(`createGHLContact: POST /contacts/ responded status=${response.status} ok=${response.ok}`));
 
     // GoHighLevel returns a JSON body on both success and failure, so we
     // read it either way — the failure body is what tells us *why* a field
@@ -343,6 +374,11 @@ async function createGHLContact(eventData) {
         action: 'Failed to create GHL contact',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(
+          `createGHLContact: OUTCOME failure — mindbodyClientId=${eventData.clientId} not created, GHL returned status ${response.status}`
+        )
+      );
       return;
     }
 
@@ -354,6 +390,11 @@ async function createGHLContact(eventData) {
       action: 'Created GHL contact',
       status: 'success',
     });
+    safeLog(() =>
+      console.log(
+        `createGHLContact: OUTCOME success — created GHL contact ${responseBody && responseBody.contact && responseBody.contact.id} for mindbodyClientId=${eventData.clientId}`
+      )
+    );
   } catch (error) {
     console.error('Error calling GoHighLevel API:', error);
     logActivity({
@@ -363,6 +404,9 @@ async function createGHLContact(eventData) {
       action: 'Error creating GHL contact',
       status: 'error',
     });
+    safeLog(() =>
+      console.log(`createGHLContact: OUTCOME error — mindbodyClientId=${eventData.clientId} threw: ${error && error.message}`)
+    );
   }
 }
 
@@ -460,14 +504,24 @@ function mapMindbodyClientToEventData(client) {
  * (plural) is the parameter that actually works, so that's used below.
  */
 async function getOrCreateGHLContact(mindbodyClientId, siteId) {
+  safeLog(() => console.log(`getOrCreateGHLContact: ENTRY mindbodyClientId=${mindbodyClientId} siteId=${siteId}`));
+
   const existingContactId = await findGHLContactByMindbodyClientId(mindbodyClientId);
 
+  safeLog(() =>
+    console.log(
+      `getOrCreateGHLContact: findGHLContactByMindbodyClientId(${mindbodyClientId}) -> ${existingContactId || 'NOT_FOUND'} — ${existingContactId ? 'FOUND, returning existing contact' : 'not found, will fall back to Mindbody fetch + create'}`
+    )
+  );
+
   if (existingContactId) {
+    safeLog(() => console.log(`getOrCreateGHLContact: OUTCOME success (fast path) — returning existing contact ${existingContactId}`));
     return existingContactId;
   }
 
   try {
     let accessToken = await getMindbodyAccessToken(siteId);
+    safeLog(() => console.log(`getOrCreateGHLContact: obtained Mindbody access token for siteId=${siteId}`));
 
     const mindbodyHeaders = () => ({
       'Api-Key': MINDBODY_API_KEY,
@@ -477,13 +531,19 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
 
     const url = `${MINDBODY_API_BASE_URL}/client/clients?ClientIds=${mindbodyClientId}`;
 
+    safeLog(() => console.log(`getOrCreateGHLContact: calling GET ${url}`));
+
     let mbResponse = await fetchWithRetry(url, { method: 'GET', headers: mindbodyHeaders() });
+
+    safeLog(() => console.log(`getOrCreateGHLContact: GET client/clients responded status=${mbResponse.status} ok=${mbResponse.ok}`));
 
     if (mbResponse.status === 401) {
       console.warn('Mindbody API returned 401 — refreshing access token and retrying once.');
+      safeLog(() => console.log('getOrCreateGHLContact: DECISION 401 received — refreshing token and retrying once'));
       delete tokenCacheBySite[siteId];
       accessToken = await getMindbodyAccessToken(siteId);
       mbResponse = await fetchWithRetry(url, { method: 'GET', headers: mindbodyHeaders() });
+      safeLog(() => console.log(`getOrCreateGHLContact: retry GET client/clients responded status=${mbResponse.status} ok=${mbResponse.ok}`));
     }
 
     const mbBody = await mbResponse.json().catch(() => null);
@@ -497,10 +557,19 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
         action: 'Fallback Mindbody client fetch failed',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`getOrCreateGHLContact: OUTCOME failure — Mindbody client fetch failed for ${mindbodyClientId}, status ${mbResponse.status}`)
+      );
       return null;
     }
 
     const client = (mbBody && mbBody.Clients && mbBody.Clients[0]) || null;
+
+    safeLog(() =>
+      console.log(
+        `getOrCreateGHLContact: DECISION Mindbody returned ${mbBody && Array.isArray(mbBody.Clients) ? mbBody.Clients.length : 0} client(s) for ${mindbodyClientId} — ${client ? 'using first result' : 'none, cannot create contact'}`
+      )
+    );
 
     if (!client) {
       console.error(`Mindbody client fetch (fallback) returned no client for ID ${mindbodyClientId}`);
@@ -511,6 +580,7 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
         action: 'Fallback Mindbody client fetch returned no client',
         status: 'error',
       });
+      safeLog(() => console.log(`getOrCreateGHLContact: OUTCOME failure — no Mindbody client found for ${mindbodyClientId}`));
       return null;
     }
 
@@ -522,11 +592,19 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
       source: 'mindbody',
     };
 
+    safeLog(() =>
+      console.log(
+        `getOrCreateGHLContact: calling POST ${GHL_API_BASE_URL}/contacts/ — locationId=${contactPayload.locationId} tags=${JSON.stringify(contactPayload.tags)} customFieldIds=${JSON.stringify(contactPayload.customFields.map((f) => f.id))}`
+      )
+    );
+
     const createResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/`, {
       method: 'POST',
       headers: GHL_HEADERS,
       body: JSON.stringify(contactPayload),
     });
+
+    safeLog(() => console.log(`getOrCreateGHLContact: POST /contacts/ responded status=${createResponse.status} ok=${createResponse.ok}`));
 
     const createBody = await createResponse.json().catch(() => null);
 
@@ -539,6 +617,9 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
         action: 'Fallback GHL contact creation failed',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`getOrCreateGHLContact: OUTCOME failure — GHL rejected fallback creation for ${mindbodyClientId}, status ${createResponse.status}`)
+      );
       return null;
     }
 
@@ -551,6 +632,9 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
       action: 'Created missing contact via fallback',
       status: 'success',
     });
+    safeLog(() =>
+      console.log(`getOrCreateGHLContact: OUTCOME success (fallback create) — created GHL contact ${newContactId} for mindbodyClientId=${mindbodyClientId}`)
+    );
     return newContactId;
   } catch (error) {
     console.error('Error in getOrCreateGHLContact fallback:', error);
@@ -561,6 +645,7 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
       action: 'Fallback contact creation threw an error',
       status: 'error',
     });
+    safeLog(() => console.log(`getOrCreateGHLContact: OUTCOME error — mindbodyClientId=${mindbodyClientId} threw: ${error && error.message}`));
     return null;
   }
 }
@@ -570,7 +655,17 @@ async function getOrCreateGHLContact(mindbodyClientId, siteId) {
  * "client.updated" event.
  */
 async function updateGHLContact(eventData) {
+  safeLog(() =>
+    console.log(`updateGHLContact: ENTRY trigger=client.updated mindbodyClientId=${eventData.clientId} email=${eventData.email}`)
+  );
+
   const contactId = await findGHLContactByMindbodyClientId(eventData.clientId);
+
+  safeLog(() =>
+    console.log(
+      `updateGHLContact: findGHLContactByMindbodyClientId(${eventData.clientId}) -> ${contactId || 'NOT_FOUND'} — ${contactId ? 'contact found, proceeding' : 'no contact found, will skip'}`
+    )
+  );
 
   if (!contactId) {
     console.warn(`No matching GHL contact found for mindbody client ${eventData.clientId} — skipping update`);
@@ -581,15 +676,27 @@ async function updateGHLContact(eventData) {
       action: 'No matching GHL contact found, skipped update',
       status: 'error',
     });
+    safeLog(() =>
+      console.log(`updateGHLContact: OUTCOME skipped — no GHL contact for mindbodyClientId=${eventData.clientId}, nothing updated`)
+    );
     return;
   }
 
   try {
+    const updatePayload = buildContactPayload(eventData);
+    safeLog(() =>
+      console.log(
+        `updateGHLContact: calling PUT ${GHL_API_BASE_URL}/contacts/${contactId} — tags=${JSON.stringify(updatePayload.tags)} customFieldIds=${JSON.stringify(updatePayload.customFields.map((f) => f.id))}`
+      )
+    );
+
     const updateResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/${contactId}`, {
       method: 'PUT',
       headers: GHL_HEADERS,
-      body: JSON.stringify(buildContactPayload(eventData)),
+      body: JSON.stringify(updatePayload),
     });
+
+    safeLog(() => console.log(`updateGHLContact: PUT /contacts/${contactId} responded status=${updateResponse.status} ok=${updateResponse.ok}`));
 
     const updateBody = await updateResponse.json().catch(() => null);
 
@@ -602,6 +709,9 @@ async function updateGHLContact(eventData) {
         action: 'Failed to update GHL contact',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`updateGHLContact: OUTCOME failure — contact ${contactId} not updated, GHL returned status ${updateResponse.status}`)
+      );
       return;
     }
 
@@ -613,6 +723,7 @@ async function updateGHLContact(eventData) {
       action: 'Updated GHL contact',
       status: 'success',
     });
+    safeLog(() => console.log(`updateGHLContact: OUTCOME success — contact ${contactId} updated for mindbodyClientId=${eventData.clientId}`));
   } catch (error) {
     console.error('Error calling GoHighLevel API:', error);
     logActivity({
@@ -622,6 +733,7 @@ async function updateGHLContact(eventData) {
       action: 'Error updating GHL contact',
       status: 'error',
     });
+    safeLog(() => console.log(`updateGHLContact: OUTCOME error — contact ${contactId} threw: ${error && error.message}`));
   }
 }
 
@@ -687,10 +799,22 @@ function resolveMembershipEventDate(eventData) {
  * Membership record in GoHighLevel and links it to the matching contact.
  */
 async function handleMembershipCreated(eventData) {
+  safeLog(() =>
+    console.log(
+      `handleMembershipCreated: ENTRY trigger=clientMembershipAssignment.created mindbodyClientId=${eventData.clientId} siteId=${eventData.siteId} membershipId=${eventData.membershipId} membershipName=${eventData.membershipName}`
+    )
+  );
+
   // Step 1 — find (or, if missing, create) the GHL contact this membership
   // belongs to. Falls back to fetching straight from Mindbody in case this
   // membership webhook arrived before/instead of client.created.
   const contactId = await getOrCreateGHLContact(eventData.clientId, eventData.siteId);
+
+  safeLog(() =>
+    console.log(
+      `handleMembershipCreated: DECISION getOrCreateGHLContact -> ${contactId || 'NULL'} — ${contactId ? 'contact resolved, proceeding to create membership record' : 'could not resolve, will skip'}`
+    )
+  );
 
   if (!contactId) {
     console.warn(`Could not resolve a GHL contact for mindbody client ${eventData.clientId} — skipping membership creation`);
@@ -701,6 +825,9 @@ async function handleMembershipCreated(eventData) {
       action: 'Could not resolve GHL contact for membership creation',
       status: 'error',
     });
+    safeLog(() =>
+      console.log(`handleMembershipCreated: OUTCOME skipped — no GHL contact for mindbodyClientId=${eventData.clientId}, no membership record created`)
+    );
     return;
   }
 
@@ -709,6 +836,13 @@ async function handleMembershipCreated(eventData) {
   // Step 2 — create the Membership record.
   let recordId;
   try {
+    const startDate = resolveMembershipEventDate(eventData);
+    safeLog(() =>
+      console.log(
+        `handleMembershipCreated: calling POST ${GHL_API_BASE_URL}/objects/${MEMBERSHIP_OBJECT_KEY}/records — membership_name=${eventData.membershipName} mindbody_membership_id=${eventData.membershipId} membership_status=active start_date=${startDate}`
+      )
+    );
+
     const recordResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/objects/${MEMBERSHIP_OBJECT_KEY}/records`, {
       method: 'POST',
       headers: GHL_HEADERS,
@@ -718,10 +852,14 @@ async function handleMembershipCreated(eventData) {
           membership_name: eventData.membershipName,
           mindbody_membership_id: toSafeString(eventData.membershipId),
           membership_status: 'active',
-          start_date: resolveMembershipEventDate(eventData),
+          start_date: startDate,
         },
       }),
     });
+
+    safeLog(() =>
+      console.log(`handleMembershipCreated: POST membership record responded status=${recordResponse.status} ok=${recordResponse.ok}`)
+    );
 
     const recordBody = await recordResponse.json().catch(() => null);
 
@@ -734,6 +872,9 @@ async function handleMembershipCreated(eventData) {
         action: 'Failed to create membership record',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`handleMembershipCreated: OUTCOME failure — membership record not created for contact ${contactId}, status ${recordResponse.status}`)
+      );
       return;
     }
 
@@ -748,8 +889,13 @@ async function handleMembershipCreated(eventData) {
       action: 'Error creating membership record',
       status: 'error',
     });
+    safeLog(() => console.log(`handleMembershipCreated: OUTCOME error — membership record creation threw: ${error && error.message}`));
     return;
   }
+
+  safeLog(() =>
+    console.log(`handleMembershipCreated: DECISION recordId=${recordId || 'MISSING'} — ${recordId ? 'proceeding to create relation' : 'cannot link, will skip'}`)
+  );
 
   if (!recordId) {
     console.error('GoHighLevel membership record creation response did not include a record id — skipping relation creation');
@@ -760,11 +906,18 @@ async function handleMembershipCreated(eventData) {
       action: 'Membership record creation response missing record id',
       status: 'error',
     });
+    safeLog(() => console.log(`handleMembershipCreated: OUTCOME failure — no record id returned, relation not created for contact ${contactId}`));
     return;
   }
 
   // Step 3 — link the new Membership record to the contact.
   try {
+    safeLog(() =>
+      console.log(
+        `handleMembershipCreated: calling POST ${GHL_API_BASE_URL}/associations/relations — associationId=${MEMBERSHIP_CONTACT_ASSOCIATION_ID} firstRecordId=${contactId} secondRecordId=${recordId}`
+      )
+    );
+
     const relationResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/associations/relations`, {
       method: 'POST',
       headers: GHL_HEADERS,
@@ -775,6 +928,10 @@ async function handleMembershipCreated(eventData) {
         secondRecordId: recordId,
       }),
     });
+
+    safeLog(() =>
+      console.log(`handleMembershipCreated: POST relation responded status=${relationResponse.status} ok=${relationResponse.ok}`)
+    );
 
     const relationBody = await relationResponse.json().catch(() => null);
 
@@ -787,6 +944,9 @@ async function handleMembershipCreated(eventData) {
         action: 'Failed to create membership-contact relation',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`handleMembershipCreated: OUTCOME failure — relation not created between contact ${contactId} and record ${recordId}, status ${relationResponse.status}`)
+      );
       return;
     }
 
@@ -801,6 +961,9 @@ async function handleMembershipCreated(eventData) {
       action: 'Created membership record and linked to contact',
       status: 'success',
     });
+    safeLog(() =>
+      console.log(`handleMembershipCreated: OUTCOME success — membership record ${recordId} created and linked to contact ${contactId}`)
+    );
   } catch (error) {
     console.error('Error calling GoHighLevel API:', error);
     logActivity({
@@ -810,6 +973,7 @@ async function handleMembershipCreated(eventData) {
       action: 'Error creating membership-contact relation',
       status: 'error',
     });
+    safeLog(() => console.log(`handleMembershipCreated: OUTCOME error — relation creation threw: ${error && error.message}`));
   }
 }
 
@@ -819,7 +983,19 @@ async function handleMembershipCreated(eventData) {
  * creates a new record — if no matching record exists, it's skipped.
  */
 async function handleMembershipCancelled(eventData) {
+  safeLog(() =>
+    console.log(
+      `handleMembershipCancelled: ENTRY trigger=clientMembershipAssignment.cancelled mindbodyClientId=${eventData.clientId} membershipId=${eventData.membershipId}`
+    )
+  );
+
   const recordId = await findMembershipRecordByMindbodyId(eventData.membershipId);
+
+  safeLog(() =>
+    console.log(
+      `handleMembershipCancelled: findMembershipRecordByMindbodyId(${eventData.membershipId}) -> ${recordId || 'NOT_FOUND'} — ${recordId ? 'found, proceeding to cancel' : 'not found, will skip'}`
+    )
+  );
 
   if (!recordId) {
     console.warn(`No matching GHL membership record found for mindbody membership ${eventData.membershipId} — skipping cancellation update`);
@@ -830,12 +1006,22 @@ async function handleMembershipCancelled(eventData) {
       action: 'No matching GHL membership record found, skipped cancellation',
       status: 'error',
     });
+    safeLog(() =>
+      console.log(`handleMembershipCancelled: OUTCOME skipped — no membership record for membershipId=${eventData.membershipId}, nothing cancelled`)
+    );
     return;
   }
 
   console.log(`Found GHL membership record ${recordId} for mindbody membership ${eventData.membershipId}`);
 
   try {
+    const endDate = resolveMembershipEventDate(eventData);
+    safeLog(() =>
+      console.log(
+        `handleMembershipCancelled: calling PUT ${GHL_API_BASE_URL}/objects/${MEMBERSHIP_OBJECT_KEY}/records/${recordId} — membership_status=terminated end_date=${endDate}`
+      )
+    );
+
     const updateResponse = await fetchWithRetry(
       `${GHL_API_BASE_URL}/objects/${MEMBERSHIP_OBJECT_KEY}/records/${recordId}?locationId=${GHL_LOCATION_ID}`,
       {
@@ -844,10 +1030,14 @@ async function handleMembershipCancelled(eventData) {
         body: JSON.stringify({
           properties: {
             membership_status: 'terminated',
-            end_date: resolveMembershipEventDate(eventData),
+            end_date: endDate,
           },
         }),
       }
+    );
+
+    safeLog(() =>
+      console.log(`handleMembershipCancelled: PUT membership record responded status=${updateResponse.status} ok=${updateResponse.ok}`)
     );
 
     const updateBody = await updateResponse.json().catch(() => null);
@@ -861,6 +1051,9 @@ async function handleMembershipCancelled(eventData) {
         action: 'Failed to update membership_status to terminated',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`handleMembershipCancelled: OUTCOME failure — record ${recordId} not cancelled, status ${updateResponse.status}`)
+      );
       return;
     }
 
@@ -872,6 +1065,7 @@ async function handleMembershipCancelled(eventData) {
       action: 'Updated membership_status to terminated',
       status: 'success',
     });
+    safeLog(() => console.log(`handleMembershipCancelled: OUTCOME success — membership record ${recordId} marked terminated`));
   } catch (error) {
     console.error('Error calling GoHighLevel API:', error);
     logActivity({
@@ -881,6 +1075,121 @@ async function handleMembershipCancelled(eventData) {
       action: 'Error updating membership_status to terminated',
       status: 'error',
     });
+    safeLog(() => console.log(`handleMembershipCancelled: OUTCOME error — record ${recordId} cancellation threw: ${error && error.message}`));
+  }
+}
+
+/**
+ * Handles a Mindbody "classRosterBooking.created" event: when a booking is
+ * a client's first-ever visit at the site (clientsNumberOfVisitsAtSite ===
+ * 1 — confirmed present on THIS event type, unlike
+ * classRosterBookingStatus.updated), records which booking that is on the
+ * contact. Does not apply any tag — that only happens once the client
+ * actually shows up, handled by handleFirstClassCompleted below via an
+ * exact classRosterBookingId match against the value recorded here.
+ */
+async function handleClassBookingCreated(eventData) {
+  safeLog(() =>
+    console.log(
+      `handleClassBookingCreated: ENTRY trigger=classRosterBooking.created mindbodyClientId=${eventData.clientId} classRosterBookingId=${eventData.classRosterBookingId} clientsNumberOfVisitsAtSite=${eventData.clientsNumberOfVisitsAtSite}`
+    )
+  );
+
+  safeLog(() =>
+    console.log(
+      `handleClassBookingCreated: DECISION clientsNumberOfVisitsAtSite=${eventData.clientsNumberOfVisitsAtSite} — ${eventData.clientsNumberOfVisitsAtSite === 1 ? 'IS first visit, proceeding' : 'not first visit, no-op'}`
+    )
+  );
+
+  if (eventData.clientsNumberOfVisitsAtSite !== 1) {
+    return;
+  }
+
+  const contactId = await getOrCreateGHLContact(eventData.clientId, eventData.siteId);
+
+  safeLog(() =>
+    console.log(
+      `handleClassBookingCreated: DECISION getOrCreateGHLContact -> ${contactId || 'NULL'} — ${contactId ? 'contact resolved, proceeding to record booking' : 'could not resolve, will skip'}`
+    )
+  );
+
+  if (!contactId) {
+    console.warn(`Could not resolve a GHL contact for mindbody client ${eventData.clientId} — skipping first-visit booking record`);
+    logActivity({
+      trigger: 'classRosterBooking.created',
+      mindbodyClientId: eventData.clientId,
+      ghlContactId: null,
+      action: 'Could not resolve GHL contact for first-visit booking record',
+      status: 'error',
+    });
+    safeLog(() =>
+      console.log(`handleClassBookingCreated: OUTCOME skipped — no GHL contact for mindbodyClientId=${eventData.clientId}, booking id not recorded`)
+    );
+    return;
+  }
+
+  try {
+    safeLog(() =>
+      console.log(
+        `handleClassBookingCreated: calling PUT ${GHL_API_BASE_URL}/contacts/${contactId} — customFieldId=9NuHRxHfjnenKLKdWY7G (mb_first_visit_booking_id)=${eventData.classRosterBookingId}`
+      )
+    );
+
+    const updateResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/${contactId}`, {
+      method: 'PUT',
+      headers: GHL_HEADERS,
+      body: JSON.stringify({
+        customFields: [
+          { id: '9NuHRxHfjnenKLKdWY7G', key: 'mb_first_visit_booking_id', fieldValue: toSafeString(eventData.classRosterBookingId) },
+        ],
+      }),
+    });
+
+    safeLog(() =>
+      console.log(`handleClassBookingCreated: PUT /contacts/${contactId} responded status=${updateResponse.status} ok=${updateResponse.ok}`)
+    );
+
+    const updateBody = await updateResponse.json().catch(() => null);
+
+    if (!updateResponse.ok) {
+      console.error('GoHighLevel first-visit booking id update failed:', updateResponse.status, JSON.stringify(updateBody, null, 2));
+      logActivity({
+        trigger: 'classRosterBooking.created',
+        mindbodyClientId: eventData.clientId,
+        ghlContactId: contactId,
+        action: 'Failed to set mb_first_visit_booking_id',
+        status: 'error',
+      });
+      safeLog(() =>
+        console.log(`handleClassBookingCreated: OUTCOME failure — contact ${contactId} not updated, status ${updateResponse.status}`)
+      );
+      return;
+    }
+
+    console.log(
+      `GoHighLevel contact recorded first-visit booking id (id: ${contactId}, booking: ${eventData.classRosterBookingId}):`,
+      JSON.stringify(updateBody, null, 2)
+    );
+    logActivity({
+      trigger: 'classRosterBooking.created',
+      mindbodyClientId: eventData.clientId,
+      ghlContactId: contactId,
+      action: 'Set mb_first_visit_booking_id',
+      status: 'success',
+    });
+    safeLog(() =>
+      console.log(`handleClassBookingCreated: OUTCOME success — contact ${contactId} mb_first_visit_booking_id set to ${eventData.classRosterBookingId}`)
+    );
+  } catch (error) {
+    console.error('Error calling GoHighLevel API:', error);
+    logActivity({
+      trigger: 'classRosterBooking.created',
+      mindbodyClientId: eventData.clientId,
+      ghlContactId: contactId,
+      action: 'Error setting mb_first_visit_booking_id',
+      status: 'error',
+    });
+    safeLog(() => console.log(`handleClassBookingCreated: OUTCOME error — contact ${contactId} threw: ${error && error.message}`));
   }
 }
 
@@ -889,18 +1198,45 @@ async function handleMembershipCancelled(eventData) {
  * a client's very first completed class: tags the matching GHL contact and
  * records which class/date/location it was.
  *
+ * clientsNumberOfVisitsAtSite does NOT exist on this event type (confirmed
+ * from real production payloads — it only exists on
+ * classRosterBooking.created), so "is this their first class" can't be
+ * determined from this event alone. Instead, this correlates against the
+ * mb_first_visit_booking_id recorded by handleClassBookingCreated above: if
+ * this booking's ID exactly matches what was recorded as the client's
+ * first-ever booking, this is that first visit actually happening; anything
+ * else (mismatched or unset) is a repeat visit.
+ *
  * Fires very frequently (every roster status change for every class), so
- * the skip case below intentionally logs nothing — only the "first class"
- * case is worth a log line.
+ * the not-signed-in skip case below intentionally logs nothing — only
+ * meaningful outcomes are worth a log line.
  */
 async function handleFirstClassCompleted(eventData) {
-  if (eventData.signedInStatus !== 'SignedIn' || eventData.clientsNumberOfVisitsAtSite !== 1) {
+  safeLog(() =>
+    console.log(
+      `handleFirstClassCompleted: ENTRY trigger=classRosterBookingStatus.updated mindbodyClientId=${eventData.clientId} classRosterBookingId=${eventData.classRosterBookingId} signedInStatus=${eventData.signedInStatus}`
+    )
+  );
+
+  safeLog(() =>
+    console.log(
+      `handleFirstClassCompleted: DECISION signedInStatus="${eventData.signedInStatus}" — ${eventData.signedInStatus === 'SignedIn' ? 'SignedIn, proceeding' : 'not SignedIn, no-op'}`
+    )
+  );
+
+  if (eventData.signedInStatus !== 'SignedIn') {
     return;
   }
 
   // Falls back to fetching straight from Mindbody in case this class-
   // completion webhook arrived before/instead of client.created.
   const contactId = await getOrCreateGHLContact(eventData.clientId, eventData.siteId);
+
+  safeLog(() =>
+    console.log(
+      `handleFirstClassCompleted: DECISION getOrCreateGHLContact -> ${contactId || 'NULL'} — ${contactId ? 'contact resolved, proceeding' : 'could not resolve, will skip'}`
+    )
+  );
 
   if (!contactId) {
     console.warn(`Could not resolve a GHL contact for mindbody client ${eventData.clientId} — skipping first-class update`);
@@ -911,16 +1247,23 @@ async function handleFirstClassCompleted(eventData) {
       action: 'Could not resolve GHL contact for first-class update',
       status: 'error',
     });
+    safeLog(() =>
+      console.log(`handleFirstClassCompleted: OUTCOME skipped — no GHL contact for mindbodyClientId=${eventData.clientId}`)
+    );
     return;
   }
 
   try {
     // We need the contact's current tags so the update doesn't clobber
     // whatever tags are already on it.
+    safeLog(() => console.log(`handleFirstClassCompleted: calling GET ${GHL_API_BASE_URL}/contacts/${contactId}`));
+
     const getResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/${contactId}`, {
       method: 'GET',
       headers: GHL_HEADERS,
     });
+
+    safeLog(() => console.log(`handleFirstClassCompleted: GET /contacts/${contactId} responded status=${getResponse.status} ok=${getResponse.ok}`));
 
     const getBody = await getResponse.json().catch(() => null);
 
@@ -933,13 +1276,56 @@ async function handleFirstClassCompleted(eventData) {
         action: 'Failed to fetch GHL contact for first-class update',
         status: 'error',
       });
+      safeLog(() => console.log(`handleFirstClassCompleted: OUTCOME failure — could not fetch contact ${contactId}, status ${getResponse.status}`));
       return;
     }
 
     const existingTags = (getBody && getBody.contact && getBody.contact.tags) || [];
+
+    safeLog(() => console.log(`handleFirstClassCompleted: contact ${contactId} existing tags=${JSON.stringify(existingTags)}`));
+
+    // Correlate against the booking recorded by handleClassBookingCreated:
+    // only treat this as "first class completed" if this exact booking is
+    // the one that was flagged as the client's first-ever visit. Anything
+    // else (mismatched or never set) is a repeat visit, not a first one.
+    const existingCustomFields = (getBody && getBody.contact && getBody.contact.customFields) || [];
+    const firstVisitBookingIdField = existingCustomFields.find((field) => field.id === '9NuHRxHfjnenKLKdWY7G');
+    const storedFirstVisitBookingId = firstVisitBookingIdField ? toSafeString(firstVisitBookingIdField.value) : '';
+    const incomingBookingId = toSafeString(eventData.classRosterBookingId);
+    const bookingMatches = Boolean(storedFirstVisitBookingId) && storedFirstVisitBookingId === incomingBookingId;
+
+    safeLog(() =>
+      console.log(
+        `handleFirstClassCompleted: contact ${contactId} mb_first_visit_booking_id="${storedFirstVisitBookingId}" vs incoming classRosterBookingId="${incomingBookingId}" — ${bookingMatches ? 'MATCH, proceeding' : 'MISMATCH, skipping as repeat visit'}`
+      )
+    );
+
+    if (!bookingMatches) {
+      console.log(
+        `Booking ${incomingBookingId} does not match contact ${contactId}'s recorded first-visit booking ("${storedFirstVisitBookingId}") — repeat visit, skipping first-class tag/fields`
+      );
+      logActivity({
+        trigger: 'classRosterBookingStatus.updated',
+        mindbodyClientId: eventData.clientId,
+        ghlContactId: contactId,
+        action: 'Booking does not match recorded first-visit booking, skipped as repeat visit',
+        status: 'success',
+      });
+      safeLog(() =>
+        console.log(`handleFirstClassCompleted: OUTCOME skipped (repeat visit) — contact ${contactId}, booking ${incomingBookingId}`)
+      );
+      return;
+    }
+
     const mergedTags = Array.from(new Set([...existingTags, 'mb-first-class-completed']));
 
     const locationName = LOCATION_ID_TO_NAME[eventData.locationId] || toSafeString(eventData.locationId);
+
+    safeLog(() =>
+      console.log(
+        `handleFirstClassCompleted: calling PUT ${GHL_API_BASE_URL}/contacts/${contactId} — tags=${JSON.stringify(mergedTags)} mb_first_class_name=${eventData.itemName} mb_first_class_date=${toDateOnly(eventData.classDateTime)} mb_first_class_location=${locationName}`
+      )
+    );
 
     const updateResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/${contactId}`, {
       method: 'PUT',
@@ -954,6 +1340,10 @@ async function handleFirstClassCompleted(eventData) {
       }),
     });
 
+    safeLog(() =>
+      console.log(`handleFirstClassCompleted: PUT /contacts/${contactId} (tags/fields) responded status=${updateResponse.status} ok=${updateResponse.ok}`)
+    );
+
     const updateBody = await updateResponse.json().catch(() => null);
 
     if (!updateResponse.ok) {
@@ -965,6 +1355,9 @@ async function handleFirstClassCompleted(eventData) {
         action: 'Failed to apply mb-first-class-completed tag',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`handleFirstClassCompleted: OUTCOME failure — mb-first-class-completed tag not applied to contact ${contactId}, status ${updateResponse.status}`)
+      );
       return;
     }
 
@@ -976,13 +1369,22 @@ async function handleFirstClassCompleted(eventData) {
       action: 'Applied mb-first-class-completed tag',
       status: 'success',
     });
+    safeLog(() => console.log(`handleFirstClassCompleted: OUTCOME success — mb-first-class-completed applied to contact ${contactId}`));
 
     // Now check whether this contact has an active Membership record, so we
     // can flag "first class but no membership" for follow-up.
+    safeLog(() =>
+      console.log(`handleFirstClassCompleted: calling GET ${GHL_API_BASE_URL}/associations/relations/${contactId}`)
+    );
+
     const relationsResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/associations/relations/${contactId}?locationId=${GHL_LOCATION_ID}`, {
       method: 'GET',
       headers: GHL_HEADERS,
     });
+
+    safeLog(() =>
+      console.log(`handleFirstClassCompleted: GET relations responded status=${relationsResponse.status} ok=${relationsResponse.ok}`)
+    );
 
     const relationsBody = await relationsResponse.json().catch(() => null);
 
@@ -995,6 +1397,9 @@ async function handleFirstClassCompleted(eventData) {
         action: 'Failed to fetch relations for membership check',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`handleFirstClassCompleted: OUTCOME failure — could not fetch relations for contact ${contactId}, status ${relationsResponse.status}`)
+      );
       return;
     }
 
@@ -1017,13 +1422,24 @@ async function handleFirstClassCompleted(eventData) {
       .map((relation) => (relation.firstRecordId === contactId ? relation.secondRecordId : relation.firstRecordId));
 
     console.log(`Found ${membershipRecordIds.length} membership relation(s) for contact ${contactId}`);
+    safeLog(() =>
+      console.log(`handleFirstClassCompleted: DECISION ${membershipRecordIds.length} membership relation(s) found — checking each for active status`)
+    );
 
     let hasActiveMembership = false;
 
     for (const membershipRecordId of membershipRecordIds) {
+      safeLog(() =>
+        console.log(`handleFirstClassCompleted: calling GET ${GHL_API_BASE_URL}/objects/${MEMBERSHIP_OBJECT_KEY}/records/${membershipRecordId}`)
+      );
+
       const membershipResponse = await fetchWithRetry(
         `${GHL_API_BASE_URL}/objects/${MEMBERSHIP_OBJECT_KEY}/records/${membershipRecordId}?locationId=${GHL_LOCATION_ID}`,
         { method: 'GET', headers: GHL_HEADERS }
+      );
+
+      safeLog(() =>
+        console.log(`handleFirstClassCompleted: GET membership record ${membershipRecordId} responded status=${membershipResponse.status} ok=${membershipResponse.ok}`)
       );
 
       const membershipBody = await membershipResponse.json().catch(() => null);
@@ -1043,11 +1459,21 @@ async function handleFirstClassCompleted(eventData) {
       const membershipStatus =
         membershipBody && membershipBody.record && membershipBody.record.properties && membershipBody.record.properties.membership_status;
 
+      safeLog(() =>
+        console.log(
+          `handleFirstClassCompleted: membership record ${membershipRecordId} membership_status="${membershipStatus}" — ${membershipStatus === 'active' ? 'ACTIVE, stopping check' : 'not active, checking next'}`
+        )
+      );
+
       if (membershipStatus === 'active') {
         hasActiveMembership = true;
         break;
       }
     }
+
+    safeLog(() =>
+      console.log(`handleFirstClassCompleted: DECISION hasActiveMembership=${hasActiveMembership} for contact ${contactId}`)
+    );
 
     if (hasActiveMembership) {
       console.log(`Active membership found for contact ${contactId} — skipping mb-first-class-no-membership tag`);
@@ -1058,16 +1484,29 @@ async function handleFirstClassCompleted(eventData) {
         action: 'Active membership found, skipped mb-first-class-no-membership tag',
         status: 'success',
       });
+      safeLog(() =>
+        console.log(`handleFirstClassCompleted: OUTCOME success (no-membership tag skipped) — contact ${contactId} has an active membership`)
+      );
       return;
     }
 
     const tagsWithNoMembership = Array.from(new Set([...mergedTags, 'mb-first-class-no-membership']));
+
+    safeLog(() =>
+      console.log(
+        `handleFirstClassCompleted: calling PUT ${GHL_API_BASE_URL}/contacts/${contactId} — tags=${JSON.stringify(tagsWithNoMembership)}`
+      )
+    );
 
     const noMembershipUpdateResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/${contactId}`, {
       method: 'PUT',
       headers: GHL_HEADERS,
       body: JSON.stringify({ tags: tagsWithNoMembership }),
     });
+
+    safeLog(() =>
+      console.log(`handleFirstClassCompleted: PUT /contacts/${contactId} (no-membership tag) responded status=${noMembershipUpdateResponse.status} ok=${noMembershipUpdateResponse.ok}`)
+    );
 
     const noMembershipUpdateBody = await noMembershipUpdateResponse.json().catch(() => null);
 
@@ -1080,6 +1519,9 @@ async function handleFirstClassCompleted(eventData) {
         action: 'Failed to apply mb-first-class-no-membership tag',
         status: 'error',
       });
+      safeLog(() =>
+        console.log(`handleFirstClassCompleted: OUTCOME failure — mb-first-class-no-membership tag not applied to contact ${contactId}, status ${noMembershipUpdateResponse.status}`)
+      );
       return;
     }
 
@@ -1091,6 +1533,7 @@ async function handleFirstClassCompleted(eventData) {
       action: 'Applied mb-first-class-no-membership tag',
       status: 'success',
     });
+    safeLog(() => console.log(`handleFirstClassCompleted: OUTCOME success — mb-first-class-no-membership applied to contact ${contactId}`));
   } catch (error) {
     console.error('Error calling GoHighLevel API:', error);
     logActivity({
@@ -1100,6 +1543,7 @@ async function handleFirstClassCompleted(eventData) {
       action: 'Error during first-class-completed handling',
       status: 'error',
     });
+    safeLog(() => console.log(`handleFirstClassCompleted: OUTCOME error — contact ${contactId} threw: ${error && error.message}`));
   }
 }
 
@@ -1116,14 +1560,32 @@ async function handlePurchaseCreated(eventData) {
   const items = eventData.items || [];
   const purchaseDate = toDateOnly(eventData.saleDateTime);
 
+  safeLog(() =>
+    console.log(
+      `handlePurchaseCreated: ENTRY trigger=clientSale.created saleId=${eventData.saleId} itemCount=${items.length} purchaseDate=${purchaseDate}`
+    )
+  );
+
   let succeeded = 0;
   let skipped = 0;
 
   for (const item of items) {
+    safeLog(() =>
+      console.log(
+        `handlePurchaseCreated: processing item name=${item.name} type=${item.type} amountPaid=${item.amountPaid} recipientClientId=${item.recipientClientId}`
+      )
+    );
+
     // Step 1 — find (or, if missing, create) the GHL contact this item's
     // purchase belongs to. Falls back to fetching straight from Mindbody in
     // case this sale webhook arrived before/instead of client.created.
     const contactId = await getOrCreateGHLContact(item.recipientClientId, eventData.siteId);
+
+    safeLog(() =>
+      console.log(
+        `handlePurchaseCreated: DECISION getOrCreateGHLContact -> ${contactId || 'NULL'} for item "${item.name}" — ${contactId ? 'contact resolved, proceeding' : 'could not resolve, will skip this item'}`
+      )
+    );
 
     if (!contactId) {
       console.warn(`Could not resolve a GHL contact for mindbody client ${item.recipientClientId} — skipping purchase item "${item.name}"`);
@@ -1134,6 +1596,7 @@ async function handlePurchaseCreated(eventData) {
         action: `Could not resolve GHL contact for purchase item "${item.name}"`,
         status: 'error',
       });
+      safeLog(() => console.log(`handlePurchaseCreated: OUTCOME item skipped — no GHL contact for recipientClientId=${item.recipientClientId}`));
       skipped += 1;
       continue;
     }
@@ -1143,6 +1606,12 @@ async function handlePurchaseCreated(eventData) {
     // Step 2 — create the Purchase record.
     let recordId;
     try {
+      safeLog(() =>
+        console.log(
+          `handlePurchaseCreated: calling POST ${GHL_API_BASE_URL}/objects/${PURCHASE_OBJECT_KEY}/records — item_name=${item.name} item_type=${item.type} amount_paid=${item.amountPaid} mindbody_sale_id=${eventData.saleId}`
+        )
+      );
+
       const recordResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/objects/${PURCHASE_OBJECT_KEY}/records`, {
         method: 'POST',
         headers: GHL_HEADERS,
@@ -1158,6 +1627,10 @@ async function handlePurchaseCreated(eventData) {
         }),
       });
 
+      safeLog(() =>
+        console.log(`handlePurchaseCreated: POST purchase record responded status=${recordResponse.status} ok=${recordResponse.ok}`)
+      );
+
       const recordBody = await recordResponse.json().catch(() => null);
 
       if (!recordResponse.ok) {
@@ -1169,6 +1642,9 @@ async function handlePurchaseCreated(eventData) {
           action: 'Failed to create purchase record',
           status: 'error',
         });
+        safeLog(() =>
+          console.log(`handlePurchaseCreated: OUTCOME item failed — purchase record not created for contact ${contactId}, status ${recordResponse.status}`)
+        );
         skipped += 1;
         continue;
       }
@@ -1184,9 +1660,14 @@ async function handlePurchaseCreated(eventData) {
         action: 'Error creating purchase record',
         status: 'error',
       });
+      safeLog(() => console.log(`handlePurchaseCreated: OUTCOME item error — purchase record creation threw: ${error && error.message}`));
       skipped += 1;
       continue;
     }
+
+    safeLog(() =>
+      console.log(`handlePurchaseCreated: DECISION recordId=${recordId || 'MISSING'} — ${recordId ? 'proceeding to link to contact' : 'cannot link, will skip'}`)
+    );
 
     if (!recordId) {
       console.error('GoHighLevel purchase record creation response did not include a record id — skipping relation creation');
@@ -1197,12 +1678,19 @@ async function handlePurchaseCreated(eventData) {
         action: 'Purchase record creation response missing record id',
         status: 'error',
       });
+      safeLog(() => console.log(`handlePurchaseCreated: OUTCOME item failed — no record id returned for contact ${contactId}`));
       skipped += 1;
       continue;
     }
 
     // Step 3 — link the new Purchase record to the contact.
     try {
+      safeLog(() =>
+        console.log(
+          `handlePurchaseCreated: calling POST ${GHL_API_BASE_URL}/associations/relations — associationId=${PURCHASE_CONTACT_ASSOCIATION_ID} firstRecordId=${contactId} secondRecordId=${recordId}`
+        )
+      );
+
       const relationResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/associations/relations`, {
         method: 'POST',
         headers: GHL_HEADERS,
@@ -1213,6 +1701,10 @@ async function handlePurchaseCreated(eventData) {
           secondRecordId: recordId,
         }),
       });
+
+      safeLog(() =>
+        console.log(`handlePurchaseCreated: POST relation responded status=${relationResponse.status} ok=${relationResponse.ok}`)
+      );
 
       const relationBody = await relationResponse.json().catch(() => null);
 
@@ -1225,6 +1717,9 @@ async function handlePurchaseCreated(eventData) {
           action: 'Failed to create purchase-contact relation',
           status: 'error',
         });
+        safeLog(() =>
+          console.log(`handlePurchaseCreated: OUTCOME item failed — relation not created between contact ${contactId} and record ${recordId}, status ${relationResponse.status}`)
+        );
         skipped += 1;
         continue;
       }
@@ -1240,6 +1735,9 @@ async function handlePurchaseCreated(eventData) {
         action: 'Created purchase record and linked to contact',
         status: 'success',
       });
+      safeLog(() =>
+        console.log(`handlePurchaseCreated: OUTCOME item success — purchase record ${recordId} created and linked to contact ${contactId}`)
+      );
       succeeded += 1;
     } catch (error) {
       console.error('Error calling GoHighLevel API:', error);
@@ -1250,11 +1748,15 @@ async function handlePurchaseCreated(eventData) {
         action: 'Error creating purchase-contact relation',
         status: 'error',
       });
+      safeLog(() => console.log(`handlePurchaseCreated: OUTCOME item error — relation creation threw: ${error && error.message}`));
       skipped += 1;
     }
   }
 
   console.log(`clientSale.created processed: ${succeeded} item(s) succeeded, ${skipped} item(s) skipped (out of ${items.length} total).`);
+  safeLog(() =>
+    console.log(`handlePurchaseCreated: OUTCOME summary — saleId=${eventData.saleId} succeeded=${succeeded} skipped=${skipped} total=${items.length}`)
+  );
 }
 
 // When you first create a webhook subscription in Mindbody, Mindbody sends a
@@ -1298,6 +1800,8 @@ app.post('/webhooks/mindbody', async (req, res) => {
     await handleMembershipCreated(eventData);
   } else if (eventId === 'clientMembershipAssignment.cancelled') {
     await handleMembershipCancelled(eventData);
+  } else if (eventId === 'classRosterBooking.created') {
+    await handleClassBookingCreated(eventData);
   } else if (eventId === 'classRosterBookingStatus.updated') {
     await handleFirstClassCompleted(eventData);
   } else if (eventId === 'clientSale.created') {

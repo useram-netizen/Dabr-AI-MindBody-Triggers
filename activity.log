@@ -15,3 +15,12 @@
 [2026-09-15T19:57:15.039Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012611 GHL_CONTACT=NOT_FOUND ACTION="Could not resolve GHL contact for no-show update" STATUS=error
 [2026-09-15T19:59:04.628Z] TRIGGER=getOrCreateGHLContact MINDBODY_CLIENT=100012849 GHL_CONTACT=GglSdNhnJUhJTNxiVT5a ACTION="Created missing contact via fallback" STATUS=success
 [2026-09-15T19:59:05.499Z] TRIGGER=no-show-job MINDBODY_CLIENT=100012849 GHL_CONTACT=GglSdNhnJUhJTNxiVT5a ACTION="Applied mb-no-show tag" STATUS=success
+[2026-09-17T15:51:47.859Z] TRIGGER=classRosterBooking.created MINDBODY_CLIENT=999900 GHL_CONTACT=ZDlp6EMAIFxKMjri5FRL ACTION="Set mb_first_visit_booking_id" STATUS=success
+[2026-09-17T15:52:03.644Z] TRIGGER=classRosterBookingStatus.updated MINDBODY_CLIENT=999900 GHL_CONTACT=ZDlp6EMAIFxKMjri5FRL ACTION="Applied mb-first-class-completed tag" STATUS=success
+[2026-09-17T15:52:04.454Z] TRIGGER=classRosterBookingStatus.updated MINDBODY_CLIENT=999900 GHL_CONTACT=ZDlp6EMAIFxKMjri5FRL ACTION="Applied mb-first-class-no-membership tag" STATUS=success
+[2026-09-17T15:52:21.586Z] TRIGGER=classRosterBookingStatus.updated MINDBODY_CLIENT=999900 GHL_CONTACT=ZDlp6EMAIFxKMjri5FRL ACTION="Booking does not match recorded first-visit booking, skipped as repeat visit" STATUS=success
+[2026-09-17T15:52:50.986Z] TRIGGER=classRosterBookingStatus.updated MINDBODY_CLIENT=999901 GHL_CONTACT=LcgBfjqA6B8JWdLTP1n0 ACTION="Booking does not match recorded first-visit booking, skipped as repeat visit" STATUS=success
+[2026-09-17T18:24:30.076Z] TRIGGER=client.updated MINDBODY_CLIENT=424242424242 GHL_CONTACT=NOT_FOUND ACTION="No matching GHL contact found, skipped update" STATUS=error
+[2026-09-17T18:24:45.866Z] TRIGGER=client.updated MINDBODY_CLIENT=999900 GHL_CONTACT=NOT_FOUND ACTION="No matching GHL contact found, skipped update" STATUS=error
+[2026-09-17T18:25:33.644Z] TRIGGER=client.updated MINDBODY_CLIENT=999902 GHL_CONTACT=4oW3NOb4NQUuD32GYCCT ACTION="Updated GHL contact" STATUS=success
+[2026-09-17T18:26:01.395Z] TRIGGER=clientMembershipAssignment.created MINDBODY_CLIENT=999902 GHL_CONTACT=4oW3NOb4NQUuD32GYCCT ACTION="Created membership record and linked to contact" STATUS=success
