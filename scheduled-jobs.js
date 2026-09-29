@@ -27,6 +27,7 @@ const STUDIO_TIMEZONE = "America/New_York";
 // Api-Key/SiteId pair.
 const MINDBODY_API_KEY = process.env.MINDBODY_API_KEY;
 const MINDBODY_SITE_ID = process.env.MINDBODY_SITE_ID;
+const MINDBODY_SITE_ID_EAST_MEADOW = process.env.MINDBODY_SITE_ID_EAST_MEADOW;
 
 if (!MINDBODY_API_KEY) {
   console.error("Missing MINDBODY_API_KEY in .env — refusing to run.");
@@ -37,6 +38,18 @@ if (!MINDBODY_SITE_ID) {
   console.error("Missing MINDBODY_SITE_ID in .env — refusing to run.");
   process.exit(1);
 }
+
+if (!MINDBODY_SITE_ID_EAST_MEADOW) {
+  console.error("Missing MINDBODY_SITE_ID_EAST_MEADOW in .env — refusing to run.");
+  process.exit(1);
+}
+
+// All Mindbody sites this integration covers. Both are queried by the
+// scheduled jobs so no location is missed.
+const MINDBODY_SITES = [
+  { id: MINDBODY_SITE_ID, name: 'Albertson' },
+  { id: MINDBODY_SITE_ID_EAST_MEADOW, name: 'East Meadow' },
+];
 
 // Mindbody staff credentials, used only by the getOrCreateGHLContact
 // fallback below to fetch a client directly from Mindbody (via a staff
@@ -77,13 +90,15 @@ const GHL_HEADERS = {
   Authorization: `Bearer ${GHL_API_TOKEN}`,
 };
 
-// Headers required on every Mindbody Public API call.
-const MINDBODY_HEADERS = {
-  "Content-Type": "application/json",
-  Accept: "application/json",
-  "Api-Key": MINDBODY_API_KEY,
-  SiteId: MINDBODY_SITE_ID,
-};
+// Builds Mindbody API headers for a specific site ID.
+function mindbodyHeaders(siteId) {
+  return {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    "Api-Key": MINDBODY_API_KEY,
+    SiteId: String(siteId),
+  };
+}
 
 /**
  * Wraps fetch() with basic retry-with-backoff and rate-limit protection.
@@ -476,18 +491,18 @@ let hasLoggedRawClassVisitsResponse = false;
 /**
  * Fetches every class that ran at the studio yesterday (studio-local date).
  */
-async function getYesterdaysClasses() {
+async function getYesterdaysClasses(siteId) {
   const url = `${MINDBODY_API_BASE_URL}/class/classes?StartDateTime=${yesterday}T00:00:00&EndDateTime=${yesterday}T23:59:59`;
 
   const response = await fetchWithRetry(url, {
     method: "GET",
-    headers: MINDBODY_HEADERS,
+    headers: mindbodyHeaders(siteId),
   });
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
     console.error(
-      "Mindbody classes fetch failed:",
+      `Mindbody classes fetch failed for site ${siteId}:`,
       response.status,
       JSON.stringify(body, null, 2),
     );
@@ -510,12 +525,12 @@ async function getYesterdaysClasses() {
  * response.Class isn't present, and to an empty visits array (with a
  * warning) if neither shape matches.
  */
-async function getClassVisits(classId) {
+async function getClassVisits(classId, siteId) {
   const url = `${MINDBODY_API_BASE_URL}/class/classvisits?ClassID=${classId}`;
 
   const response = await fetchWithRetry(url, {
     method: "GET",
-    headers: MINDBODY_HEADERS,
+    headers: mindbodyHeaders(siteId),
   });
   const body = await response.json().catch(() => null);
 
@@ -561,14 +576,17 @@ async function runNoShowJob() {
     `Running no-show job for studio date ${yesterday} (${STUDIO_TIMEZONE})`,
   );
 
-  const classes = await getYesterdaysClasses();
-
   let noShowsFound = 0;
   let contactsUpdated = 0;
   let skipped = 0;
 
+  for (const site of MINDBODY_SITES) {
+    console.log(`No-show job: checking site ${site.id} (${site.name})`);
+
+    const classes = await getYesterdaysClasses(site.id);
+
   for (const classItem of classes) {
-    const { visits, className } = await getClassVisits(classItem.Id);
+    const { visits, className } = await getClassVisits(classItem.Id, site.id);
 
     for (const visit of visits) {
       const appointmentStatus = visit.AppointmentStatus;
@@ -590,7 +608,7 @@ async function runNoShowJob() {
 
       // Falls back to fetching straight from Mindbody in case this
       // client was never created in GHL (e.g. predates the webhook).
-      const contactId = await getOrCreateGHLContact(visit.ClientId, MINDBODY_SITE_ID);
+      const contactId = await getOrCreateGHLContact(visit.ClientId, site.id);
 
       if (!contactId) {
         console.warn(
@@ -730,8 +748,11 @@ async function runNoShowJob() {
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
+    console.log(`No-show job: site ${site.id} (${site.name}) — ${classes.length} class(es) checked.`);
+  }
+
   console.log(
-    `No-show job summary: ${classes.length} class(es) checked, ${noShowsFound} no-show(s) found, ${contactsUpdated} contact(s) updated, ${skipped} skipped.`,
+    `No-show job summary: ${noShowsFound} no-show(s) found across all sites, ${contactsUpdated} contact(s) updated, ${skipped} skipped.`,
   );
 }
 
@@ -896,18 +917,18 @@ let hasLoggedRawClientVisitsResponse = false;
  * (parsed in STUDIO_TIMEZONE). Returns null if the client has no visits at
  * all.
  */
-async function getLastVisitDate(mindbodyClientId) {
+async function getLastVisitDateForSite(mindbodyClientId, siteId) {
   const url = `${MINDBODY_API_BASE_URL}/client/clientvisits?ClientId=${mindbodyClientId}`;
 
   const response = await fetchWithRetry(url, {
     method: "GET",
-    headers: MINDBODY_HEADERS,
+    headers: mindbodyHeaders(siteId),
   });
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
     console.error(
-      "Mindbody client visits fetch failed:",
+      `Mindbody client visits fetch failed for site ${siteId}:`,
       response.status,
       JSON.stringify(body, null, 2),
     );
@@ -919,8 +940,6 @@ async function getLastVisitDate(mindbodyClientId) {
     hasLoggedRawClientVisitsResponse = true;
   }
 
-  // Defensive: use `Visits` if present, otherwise assume the response body
-  // itself is the array — same pattern as getClassVisits.
   const visits = Array.isArray(body && body.Visits)
     ? body.Visits
     : Array.isArray(body)
@@ -948,6 +967,24 @@ async function getLastVisitDate(mindbodyClientId) {
   }
 
   return mostRecentVisitDate;
+}
+
+/**
+ * Returns the most recent visit date for a client across ALL sites,
+ * so a client who visits both Albertson and East Meadow is judged on
+ * their combined visit history, not just one site.
+ */
+async function getLastVisitDate(mindbodyClientId) {
+  let mostRecent = null;
+
+  for (const site of MINDBODY_SITES) {
+    const siteDate = await getLastVisitDateForSite(mindbodyClientId, site.id);
+    if (siteDate && (!mostRecent || siteDate > mostRecent)) {
+      mostRecent = siteDate;
+    }
+  }
+
+  return mostRecent;
 }
 
 /**

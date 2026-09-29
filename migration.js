@@ -62,8 +62,8 @@ const MIGRATION_SITES = [5744518, 5755023];
 // Location IDs overlap across sites (both have a location with Id: 1), so
 // the tag mapping is keyed by site AND home-location together.
 const SITE_LOCATION_TAGS = {
-  "5744518": { "1": "mb-location-albertson", "2": "mb-location-east-meadow" },
-  "5755023": { "1": "mb-location-fresh-meadows" },
+  5744518: { 1: "mb-location-albertson", 2: "mb-location-east-meadow" },
+  5755023: { 1: "mb-location-fresh-meadows" },
 };
 
 function getLocationTag(siteId, homeLocationId) {
@@ -223,7 +223,10 @@ async function fetchMindbodyClientsPage(siteId, limit, offset) {
     Authorization: `Bearer ${accessToken}`,
   });
 
-  let response = await fetchWithRetry(url, { method: "GET", headers: headers() });
+  let response = await fetchWithRetry(url, {
+    method: "GET",
+    headers: headers(),
+  });
 
   if (response.status === 401) {
     console.warn(
@@ -264,21 +267,24 @@ async function printSampleClient(siteId) {
  * independent per-file on purpose.
  */
 async function findGHLContactByMindbodyClientId(clientId) {
-  const searchResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/search`, {
-    method: "POST",
-    headers: GHL_HEADERS,
-    body: JSON.stringify({
-      locationId: GHL_LOCATION_ID,
-      pageLimit: 1,
-      filters: [
-        {
-          field: "customFields.LRTn7qgpgX6HMVR8f6zd",
-          operator: "eq",
-          value: toSafeString(clientId),
-        },
-      ],
-    }),
-  });
+  const searchResponse = await fetchWithRetry(
+    `${GHL_API_BASE_URL}/contacts/search`,
+    {
+      method: "POST",
+      headers: GHL_HEADERS,
+      body: JSON.stringify({
+        locationId: GHL_LOCATION_ID,
+        pageLimit: 1,
+        filters: [
+          {
+            field: "customFields.LRTn7qgpgX6HMVR8f6zd",
+            operator: "eq",
+            value: toSafeString(clientId),
+          },
+        ],
+      }),
+    },
+  );
 
   const searchBody = await searchResponse.json().catch(() => null);
 
@@ -330,15 +336,51 @@ function buildMigrationContactPayload(client, siteId) {
     source: "mindbody",
     tags,
     customFields: [
-      { id: "LRTn7qgpgX6HMVR8f6zd", key: "mindbody_client_id", fieldValue: toSafeString(client.Id) },
-      { id: "BS1lWuBcmo3ZyWnCA2mr", key: "mindbody_unique_id", fieldValue: toSafeString(client.UniqueId) },
-      { id: "BREWxivlCEYv67Y1rPCa", key: "mindbody_status", fieldValue: toSafeString(client.Status) },
-      { id: "l9KGKwvV0Ehgjc6aP6bK", key: "mindbody_creation_date", fieldValue: toSafeString(client.CreationDate) },
-      { id: "ZuELR70PXP89mbEULdia", key: "mindbody_birth_date", fieldValue: toSafeString(client.BirthDate) },
-      { id: "TtjLkyY4382fnIXKEOit", key: "mindbody_home_location", fieldValue: toSafeString(homeLocationId) },
-      { id: "FCPq5xu60vqGaYxhm27W", key: "mindbody_is_prospect", fieldValue: client.IsProspect ? "Yes" : "No" },
-      { id: "gYUo2TAeqDaRQMZVsIAm", key: "mindbody_referred_by", fieldValue: toSafeString(client.ReferredBy) },
-      { id: "S23LRNvmCQ1HbDq6nYXH", key: "mindbody_lead_channel_id", fieldValue: "" },
+      {
+        id: "LRTn7qgpgX6HMVR8f6zd",
+        key: "mindbody_client_id",
+        fieldValue: toSafeString(client.Id),
+      },
+      {
+        id: "BS1lWuBcmo3ZyWnCA2mr",
+        key: "mindbody_unique_id",
+        fieldValue: toSafeString(client.UniqueId),
+      },
+      {
+        id: "BREWxivlCEYv67Y1rPCa",
+        key: "mindbody_status",
+        fieldValue: toSafeString(client.Status),
+      },
+      {
+        id: "l9KGKwvV0Ehgjc6aP6bK",
+        key: "mindbody_creation_date",
+        fieldValue: toSafeString(client.CreationDate),
+      },
+      {
+        id: "ZuELR70PXP89mbEULdia",
+        key: "mindbody_birth_date",
+        fieldValue: toSafeString(client.BirthDate),
+      },
+      {
+        id: "TtjLkyY4382fnIXKEOit",
+        key: "mindbody_home_location",
+        fieldValue: toSafeString(homeLocationId),
+      },
+      {
+        id: "FCPq5xu60vqGaYxhm27W",
+        key: "mindbody_is_prospect",
+        fieldValue: client.IsProspect ? "Yes" : "No",
+      },
+      {
+        id: "gYUo2TAeqDaRQMZVsIAm",
+        key: "mindbody_referred_by",
+        fieldValue: toSafeString(client.ReferredBy),
+      },
+      {
+        id: "S23LRNvmCQ1HbDq6nYXH",
+        key: "mindbody_lead_channel_id",
+        fieldValue: "",
+      },
     ],
   };
 }
@@ -388,7 +430,11 @@ async function runMigration(siteId, limit) {
 
   while (processedThisRun < limit) {
     const pageLimit = Math.min(200, limit - processedThisRun);
-    const clients = await fetchMindbodyClientsPage(siteId, pageLimit, offset + processedThisRun);
+    const clients = await fetchMindbodyClientsPage(
+      siteId,
+      pageLimit,
+      offset + processedThisRun,
+    );
 
     if (clients.length === 0) {
       console.log(`No more clients returned for site ${siteId} — stopping.`);
@@ -404,19 +450,25 @@ async function runMigration(siteId, limit) {
       const clientId = client.Id;
 
       try {
-        const existingContactId = await findGHLContactByMindbodyClientId(clientId);
+        const existingContactId =
+          await findGHLContactByMindbodyClientId(clientId);
 
         if (existingContactId) {
-          console.log(`Duplicate — mindbody client ${clientId} already exists as GHL contact ${existingContactId}, skipping`);
+          console.log(
+            `Duplicate — mindbody client ${clientId} already exists as GHL contact ${existingContactId}, skipping`,
+          );
           skippedDuplicate += 1;
         } else {
           const payload = buildMigrationContactPayload(client, siteId);
 
-          const createResponse = await fetchWithRetry(`${GHL_API_BASE_URL}/contacts/`, {
-            method: "POST",
-            headers: GHL_HEADERS,
-            body: JSON.stringify(payload),
-          });
+          const createResponse = await fetchWithRetry(
+            `${GHL_API_BASE_URL}/contacts/`,
+            {
+              method: "POST",
+              headers: GHL_HEADERS,
+              body: JSON.stringify(payload),
+            },
+          );
 
           const createBody = await createResponse.json().catch(() => null);
 
@@ -426,8 +478,11 @@ async function runMigration(siteId, limit) {
             );
           }
 
-          const newContactId = createBody && createBody.contact && createBody.contact.id;
-          console.log(`Created — mindbody client ${clientId} -> GHL contact ${newContactId}`);
+          const newContactId =
+            createBody && createBody.contact && createBody.contact.id;
+          console.log(
+            `Created — mindbody client ${clientId} -> GHL contact ${newContactId}`,
+          );
           created += 1;
         }
 
@@ -438,7 +493,10 @@ async function runMigration(siteId, limit) {
           saveProgress({ ...progress, [siteKey]: { offset } });
         }
       } catch (error) {
-        console.error(`Errored — mindbody client ${clientId}:`, error.message || error);
+        console.error(
+          `Errored — mindbody client ${clientId}:`,
+          error.message || error,
+        );
         errored += 1;
         processedThisRun += 1;
         // Freeze the saved offset right here so a rerun retries this exact
