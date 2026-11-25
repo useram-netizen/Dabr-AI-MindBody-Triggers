@@ -28,6 +28,8 @@ const STUDIO_TIMEZONE = "America/New_York";
 const MINDBODY_API_KEY = process.env.MINDBODY_API_KEY;
 const MINDBODY_SITE_ID = process.env.MINDBODY_SITE_ID;
 const MINDBODY_SITE_ID_EAST_MEADOW = process.env.MINDBODY_SITE_ID_EAST_MEADOW;
+const MINDBODY_SITE_ID_COMMACK = process.env.MINDBODY_SITE_ID_COMMACK || '5756457';
+const MINDBODY_SITE_ID_FRESH_MEADOWS = process.env.MINDBODY_SITE_ID_FRESH_MEADOWS || '5755023';
 
 if (!MINDBODY_API_KEY) {
   console.error("Missing MINDBODY_API_KEY in .env — refusing to run.");
@@ -44,11 +46,13 @@ if (!MINDBODY_SITE_ID_EAST_MEADOW) {
   process.exit(1);
 }
 
-// All Mindbody sites this integration covers. Both are queried by the
+// All Mindbody sites this integration covers. Queried by the
 // scheduled jobs so no location is missed.
 const MINDBODY_SITES = [
   { id: MINDBODY_SITE_ID, name: 'Albertson' },
   { id: MINDBODY_SITE_ID_EAST_MEADOW, name: 'East Meadow' },
+  { id: MINDBODY_SITE_ID_COMMACK, name: 'Commack' },
+  { id: MINDBODY_SITE_ID_FRESH_MEADOWS, name: 'Fresh Meadows' },
 ];
 
 // Mindbody staff credentials, used only by the getOrCreateGHLContact

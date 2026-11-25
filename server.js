@@ -64,6 +64,13 @@ const MEMBERSHIP_CONTACT_ASSOCIATION_ID = '6aa055b768fe746e819ecb09';
 
 // Maps Mindbody location IDs to human-readable names, for the
 // mb_first_class_location custom field.
+const SITE_LOCATION_NAMES = {
+  5744518: { 1: 'Albertson' },
+  5756786: { 1: 'East Meadow', 2: 'East Meadow' },
+  5755023: { 1: 'Fresh Meadows' },
+  5756457: { 1: 'Commack' },
+};
+
 const LOCATION_ID_TO_NAME = {
   1: 'Albertson',
   2: 'East Meadow',
@@ -1319,7 +1326,12 @@ async function handleFirstClassCompleted(eventData) {
 
     const mergedTags = Array.from(new Set([...existingTags, 'mb-first-class-completed']));
 
-    const locationName = LOCATION_ID_TO_NAME[eventData.locationId] || toSafeString(eventData.locationId);
+    const siteLocations = eventData.siteId && SITE_LOCATION_NAMES[eventData.siteId];
+    const locationName = (siteLocations && siteLocations[eventData.locationId])
+      || (eventData.siteId === 5756457 || eventData.siteId === '5756457' ? 'Commack' : null)
+      || (eventData.siteId === 5755023 || eventData.siteId === '5755023' ? 'Fresh Meadows' : null)
+      || LOCATION_ID_TO_NAME[eventData.locationId]
+      || toSafeString(eventData.locationId);
 
     safeLog(() =>
       console.log(

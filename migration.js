@@ -56,20 +56,44 @@ const GHL_HEADERS = {
   Authorization: `Bearer ${GHL_API_TOKEN}`,
 };
 
-// The two Mindbody sites this studio operates across.
-const MIGRATION_SITES = [5744518, 5755023];
+// The Mindbody sites this studio operates across.
+const MIGRATION_SITES = [5744518, 5755023, 5756457];
 
 // Location IDs overlap across sites (both have a location with Id: 1), so
 // the tag mapping is keyed by site AND home-location together.
 const SITE_LOCATION_TAGS = {
   5744518: { 1: "mb-location-albertson", 2: "mb-location-east-meadow" },
   5755023: { 1: "mb-location-fresh-meadows" },
+  5756457: { 1: "mb-location-commack" },
 };
+
+// Fallback tag if client's HomeLocation is null or not explicitly set.
+const SITE_DEFAULT_TAGS = {
+  5744518: "mb-location-albertson",
+  5755023: "mb-location-fresh-meadows",
+  5756457: "mb-location-commack",
+};
+
+// Log file for each site's migration runs so a full permanent audit trail is kept.
+const SITE_LOG_FILES = {
+  5744518: "migration-log.txt",
+  5755023: "migration-fresh-meadows-log.txt",
+  5756457: "migration-commack-log.txt",
+};
+
+function logMigration(siteId, message) {
+  console.log(message);
+  const fileName = SITE_LOG_FILES[siteId] || `migration-${siteId}-log.txt`;
+  const filePath = path.join(__dirname, fileName);
+  fs.appendFileSync(filePath, message + "\n", "utf8");
+}
 
 function getLocationTag(siteId, homeLocationId) {
   const siteMap = SITE_LOCATION_TAGS[toSafeString(siteId)];
-  if (!siteMap) return null;
-  return siteMap[toSafeString(homeLocationId)] ?? null;
+  if (siteMap && homeLocationId && siteMap[toSafeString(homeLocationId)]) {
+    return siteMap[toSafeString(homeLocationId)];
+  }
+  return SITE_DEFAULT_TAGS[toSafeString(siteId)] ?? null;
 }
 
 /**
@@ -417,8 +441,9 @@ async function runMigration(siteId, limit) {
   const siteKey = toSafeString(siteId);
   let offset = (progress[siteKey] && progress[siteKey].offset) || 0;
 
-  console.log(
-    `Running migration for site ${siteId}, limit ${limit}, starting at offset ${offset}`,
+  logMigration(
+    siteId,
+    `\n--- Running migration for site ${siteId}, limit ${limit}, starting at offset ${offset} [${new Date().toISOString()}] ---`,
   );
 
   let totalFetched = 0;
@@ -433,11 +458,14 @@ async function runMigration(siteId, limit) {
     const clients = await fetchMindbodyClientsPage(
       siteId,
       pageLimit,
-      offset + processedThisRun,
+      offset,
     );
 
     if (clients.length === 0) {
-      console.log(`No more clients returned for site ${siteId} — stopping.`);
+      logMigration(
+        siteId,
+        `No more clients returned for site ${siteId} — stopping.`,
+      );
       break;
     }
 
@@ -454,7 +482,8 @@ async function runMigration(siteId, limit) {
           await findGHLContactByMindbodyClientId(clientId);
 
         if (existingContactId) {
-          console.log(
+          logMigration(
+            siteId,
             `Duplicate — mindbody client ${clientId} already exists as GHL contact ${existingContactId}, skipping`,
           );
           skippedDuplicate += 1;
@@ -473,17 +502,35 @@ async function runMigration(siteId, limit) {
           const createBody = await createResponse.json().catch(() => null);
 
           if (!createResponse.ok) {
-            throw new Error(
-              `GoHighLevel contact creation failed: ${createResponse.status} ${JSON.stringify(createBody)}`,
+            // Check if GHL rejected because this contact's phone or email already exists on another contact
+            if (
+              createResponse.status === 400 &&
+              createBody &&
+              createBody.meta &&
+              createBody.meta.contactId
+            ) {
+              const matchedId = createBody.meta.contactId;
+              const field = createBody.meta.matchingField || "phone/email";
+              const contactName = createBody.meta.contactName || "";
+              logMigration(
+                siteId,
+                `Duplicate — mindbody client ${clientId} matches existing GHL contact ${matchedId} ("${contactName}") by ${field}, skipping`,
+              );
+              skippedDuplicate += 1;
+            } else {
+              throw new Error(
+                `GoHighLevel contact creation failed: ${createResponse.status} ${JSON.stringify(createBody)}`,
+              );
+            }
+          } else {
+            const newContactId =
+              createBody && createBody.contact && createBody.contact.id;
+            logMigration(
+              siteId,
+              `Created — mindbody client ${clientId} -> GHL contact ${newContactId}`,
             );
+            created += 1;
           }
-
-          const newContactId =
-            createBody && createBody.contact && createBody.contact.id;
-          console.log(
-            `Created — mindbody client ${clientId} -> GHL contact ${newContactId}`,
-          );
-          created += 1;
         }
 
         processedThisRun += 1;
@@ -493,9 +540,9 @@ async function runMigration(siteId, limit) {
           saveProgress({ ...progress, [siteKey]: { offset } });
         }
       } catch (error) {
-        console.error(
-          `Errored — mindbody client ${clientId}:`,
-          error.message || error,
+        logMigration(
+          siteId,
+          `Errored — mindbody client ${clientId}: ${error.message || error}`,
         );
         errored += 1;
         processedThisRun += 1;
@@ -509,7 +556,8 @@ async function runMigration(siteId, limit) {
     }
   }
 
-  console.log(
+  logMigration(
+    siteId,
     `Migration summary for site ${siteId}: ${totalFetched} fetched, ${created} created, ${skippedDuplicate} skipped as duplicate, ${errored} errored.`,
   );
 }
